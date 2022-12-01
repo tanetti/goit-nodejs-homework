@@ -9,14 +9,25 @@ const readContacts = async () => {
     return JSON.parse(fileData.toString());
   } catch (error) {
     console.warn("\x1B[31m " + error);
+    return { error };
   }
 };
 
-const readContactById = async (contactId) => {};
+const readContactById = async (contactId) => {
+  try {
+    const fileData = await fs.readFile(contactsPath);
+    const contactsData = JSON.parse(fileData.toString());
 
-const removeContact = async (contactId) => {};
+    return contactsData.find(({ id }) => id === contactId);
+  } catch (error) {
+    console.warn("\x1B[31m " + error);
+    return { error };
+  }
+};
 
 const writeContact = async (body) => {};
+
+const removeContact = async (contactId) => {};
 
 const updateContact = async (contactId, body) => {};
 
