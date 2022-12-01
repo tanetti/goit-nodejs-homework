@@ -57,7 +57,7 @@ const addContact = async (req, res) => {
     });
   }
 
-  res.json({ code: "add-success", message: result });
+  res.status(201).json({ code: "add-success", message: result });
 };
 
 const deleteContactById = async (req, res) => {
