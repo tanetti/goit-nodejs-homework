@@ -1,40 +1,72 @@
-const fs = require("fs").promises;
+// const fs = require("fs").promises;
 const path = require("path");
 
 const contactsPath = path.resolve("./models/contacts.json");
 
+const { makeNewId, readContactsData, writeContactsData } = require("./utils");
+
 const readContacts = async () => {
-  try {
-    const fileData = await fs.readFile(contactsPath);
-    return JSON.parse(fileData.toString());
-  } catch (error) {
-    console.warn("\x1B[31m " + error);
-    return { error };
-  }
+  const contactsData = await readContactsData(contactsPath);
+
+  return contactsData;
 };
 
 const readContactById = async (contactId) => {
-  try {
-    const fileData = await fs.readFile(contactsPath);
-    const contactsData = JSON.parse(fileData.toString());
+  const contactsData = await readContactsData(contactsPath);
 
-    return contactsData.find(({ id }) => id === contactId);
-  } catch (error) {
-    console.warn("\x1B[31m " + error);
-    return { error };
-  }
+  if (contactsData?.error) return contactsData;
+
+  return contactsData.find(({ id }) => id === contactId);
 };
 
-const writeContact = async (body) => {};
+const writeContact = async (body) => {
+  const contactsData = await readContactsData(contactsPath);
 
-const removeContact = async (contactId) => {};
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const newContact = {
+    id: makeNewId(contactsData),
+    ...body,
+  };
+
+  const dataToWrite = [...contactsData, newContact];
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? newContact;
+
+  return result;
+};
+
+const removeContact = async (contactId) => {
+  const contactsData = await readContactsData(contactsPath);
+
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const contactToRemove = contactsData.find(({ id }) => id === contactId);
+  console.log(contactToRemove);
+
+  if (!contactToRemove) {
+    return { error: "no-contact" };
+  }
+
+  const dataToWrite = contactsData.filter(({ id }) => id !== contactId);
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? contactToRemove;
+
+  return result;
+};
 
 const updateContact = async (contactId, body) => {};
 
 module.exports = {
   readContacts,
   readContactById,
-  removeContact,
   writeContact,
+  removeContact,
   updateContact,
 };
