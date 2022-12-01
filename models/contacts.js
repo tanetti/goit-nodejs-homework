@@ -1,4 +1,3 @@
-// const fs = require("fs").promises;
 const path = require("path");
 
 const contactsPath = path.resolve("./models/contacts.json");
@@ -47,7 +46,6 @@ const removeContact = async (contactId) => {
   }
 
   const contactToRemove = contactsData.find(({ id }) => id === contactId);
-  console.log(contactToRemove);
 
   if (!contactToRemove) {
     return { error: "no-contact" };
@@ -61,7 +59,42 @@ const removeContact = async (contactId) => {
   return result;
 };
 
-const updateContact = async (contactId, body) => {};
+const updateContact = async (contactId, body) => {
+  const { name, email, phone } = body;
+
+  if (!name || !email || !phone) {
+    return { error: "no-changes" };
+  }
+
+  const contactsData = await readContactsData(contactsPath);
+
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const contactToUpdate = contactsData.find(({ id }) => id === contactId);
+
+  if (!contactToUpdate) {
+    return { error: "no-contact" };
+  }
+
+  const updatedContact = {
+    ...contactToUpdate,
+    name,
+    email,
+    phone,
+  };
+
+  const dataToWrite = [
+    ...contactsData.filter(({ id }) => id !== contactId),
+    updatedContact,
+  ].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? updatedContact;
+
+  return result;
+};
 
 module.exports = {
   readContacts,

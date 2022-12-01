@@ -3,7 +3,7 @@ const {
   readContactById,
   writeContact,
   removeContact,
-  //   updateContact,
+  updateContact,
 } = require("../models/contacts");
 
 const getContacts = async (req, res, next) => {
@@ -85,7 +85,35 @@ const deleteContactById = async (req, res, next) => {
 };
 
 const changeContactById = async (req, res, next) => {
-  res.json({ message: "template message" });
+  const {
+    body,
+    params: { contactId },
+  } = req;
+
+  const result = await updateContact(contactId, body);
+
+  if (result?.error) {
+    if (result.error === "no-changes") {
+      return res.status(400).json({
+        code: "no-changes",
+        message: "Changes was not specified properly in request",
+      });
+    }
+
+    if (result.error === "no-contact") {
+      return res.status(404).json({
+        code: "not-found",
+        message: `Contact with id "${contactId}" was not found`,
+      });
+    }
+
+    return res.status(500).json({
+      code: "storage-failure",
+      message: "Data storage corrupted or not available",
+    });
+  }
+
+  res.json({ code: "change-success", message: result });
 };
 
 module.exports = {
