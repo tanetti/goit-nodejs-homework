@@ -6,7 +6,7 @@ const {
   updateContact,
 } = require("../models/contacts");
 
-const getContacts = async (req, res, next) => {
+const getContacts = async (_, res) => {
   const contacts = await readContacts();
 
   if (contacts?.error) {
@@ -24,7 +24,7 @@ const getContacts = async (req, res, next) => {
   res.json(contacts);
 };
 
-const getContactById = async (req, res, next) => {
+const getContactById = async (req, res) => {
   const {
     params: { contactId },
   } = req;
@@ -47,7 +47,7 @@ const getContactById = async (req, res, next) => {
   res.json(contact);
 };
 
-const addContact = async (req, res, next) => {
+const addContact = async (req, res) => {
   const result = await writeContact(req.body);
 
   if (result?.error) {
@@ -60,7 +60,7 @@ const addContact = async (req, res, next) => {
   res.json({ code: "add-success", message: result });
 };
 
-const deleteContactById = async (req, res, next) => {
+const deleteContactById = async (req, res) => {
   const {
     params: { contactId },
   } = req;
@@ -84,7 +84,7 @@ const deleteContactById = async (req, res, next) => {
   res.json({ code: "remove-success", message: result });
 };
 
-const changeContactById = async (req, res, next) => {
+const changeContactById = async (req, res) => {
   const {
     body,
     params: { contactId },
@@ -93,13 +93,6 @@ const changeContactById = async (req, res, next) => {
   const result = await updateContact(contactId, body);
 
   if (result?.error) {
-    if (result.error === "no-changes") {
-      return res.status(400).json({
-        code: "no-changes",
-        message: "Changes was not specified properly in request",
-      });
-    }
-
     if (result.error === "no-contact") {
       return res.status(404).json({
         code: "not-found",

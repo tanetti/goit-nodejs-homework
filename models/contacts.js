@@ -12,7 +12,6 @@ const readContacts = async () => {
 
 const readContactById = async (contactId) => {
   const contactsData = await readContactsData(contactsPath);
-
   if (contactsData?.error) return contactsData;
 
   return contactsData.find(({ id }) => id === contactId);
@@ -20,7 +19,6 @@ const readContactById = async (contactId) => {
 
 const writeContact = async (body) => {
   const contactsData = await readContactsData(contactsPath);
-
   if (contactsData?.error) {
     return contactsData;
   }
@@ -40,13 +38,11 @@ const writeContact = async (body) => {
 
 const removeContact = async (contactId) => {
   const contactsData = await readContactsData(contactsPath);
-
   if (contactsData?.error) {
     return contactsData;
   }
 
   const contactToRemove = contactsData.find(({ id }) => id === contactId);
-
   if (!contactToRemove) {
     return { error: "no-contact" };
   }
@@ -60,29 +56,19 @@ const removeContact = async (contactId) => {
 };
 
 const updateContact = async (contactId, body) => {
-  const { name, email, phone } = body;
-
-  if (!name || !email || !phone) {
-    return { error: "no-changes" };
-  }
-
   const contactsData = await readContactsData(contactsPath);
-
   if (contactsData?.error) {
     return contactsData;
   }
 
   const contactToUpdate = contactsData.find(({ id }) => id === contactId);
-
   if (!contactToUpdate) {
     return { error: "no-contact" };
   }
 
   const updatedContact = {
     ...contactToUpdate,
-    name,
-    email,
-    phone,
+    ...body,
   };
 
   const dataToWrite = [
