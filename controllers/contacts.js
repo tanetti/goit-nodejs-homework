@@ -15,12 +15,6 @@ const getContacts = async (_, res) => {
       .json({ code: "data-corrupted", message: "Data corrupted or not found" });
   }
 
-  if (!contacts.length) {
-    return res
-      .status(404)
-      .json({ code: "data-empty", message: "Contacts data is empty for now" });
-  }
-
   res.json(contacts);
 };
 
