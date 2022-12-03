@@ -1,19 +1,91 @@
-// const fs = require('fs/promises')
+const path = require("path");
 
-const listContacts = async () => {}
+const contactsPath = path.resolve("./models/contacts.json");
 
-const getContactById = async (contactId) => {}
+const { makeNewId, readContactsData, writeContactsData } = require("./utils");
 
-const removeContact = async (contactId) => {}
+const readContacts = async () => {
+  const contactsData = await readContactsData(contactsPath);
 
-const addContact = async (body) => {}
+  return contactsData;
+};
 
-const updateContact = async (contactId, body) => {}
+const readContactById = async (contactId) => {
+  const contactsData = await readContactsData(contactsPath);
+  if (contactsData?.error) return contactsData;
+
+  return contactsData.find(({ id }) => id === contactId);
+};
+
+const writeContact = async (body) => {
+  const contactsData = await readContactsData(contactsPath);
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const newContact = {
+    id: makeNewId(contactsData),
+    ...body,
+  };
+
+  const dataToWrite = [...contactsData, newContact];
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? newContact;
+
+  return result;
+};
+
+const removeContact = async (contactId) => {
+  const contactsData = await readContactsData(contactsPath);
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const contactToRemove = contactsData.find(({ id }) => id === contactId);
+  if (!contactToRemove) {
+    return { error: "no-contact" };
+  }
+
+  const dataToWrite = contactsData.filter(({ id }) => id !== contactId);
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? contactToRemove;
+
+  return result;
+};
+
+const updateContact = async (contactId, body) => {
+  const contactsData = await readContactsData(contactsPath);
+  if (contactsData?.error) {
+    return contactsData;
+  }
+
+  const contactToUpdate = contactsData.find(({ id }) => id === contactId);
+  if (!contactToUpdate) {
+    return { error: "no-contact" };
+  }
+
+  const updatedContact = {
+    ...contactToUpdate,
+    ...body,
+  };
+
+  const dataToWrite = [
+    ...contactsData.filter(({ id }) => id !== contactId),
+    updatedContact,
+  ].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+  const result =
+    (await writeContactsData(contactsPath, dataToWrite)) ?? updatedContact;
+
+  return result;
+};
 
 module.exports = {
-  listContacts,
-  getContactById,
+  readContacts,
+  readContactById,
+  writeContact,
   removeContact,
-  addContact,
   updateContact,
-}
+};
