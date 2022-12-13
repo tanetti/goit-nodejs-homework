@@ -1,10 +1,12 @@
 const {
   contactBodyPostPutValidationSchema,
   contactBodyPatchValidationSchema,
+  contactFavoriteBodyPatchValidationSchema,
 } = require("./schema");
 
 const contactBodyValidation = (req, res, next) => {
   const requestMethod = req.method;
+  const isFavoritePath = req.path.includes("favorite");
 
   let error = null;
 
@@ -12,8 +14,12 @@ const contactBodyValidation = (req, res, next) => {
     error = contactBodyPostPutValidationSchema.validate(req.body).error;
   }
 
-  if (requestMethod === "PATCH") {
+  if (requestMethod === "PATCH" && !isFavoritePath) {
     error = contactBodyPatchValidationSchema.validate(req.body).error;
+  }
+
+  if (requestMethod === "PATCH" && isFavoritePath) {
+    error = contactFavoriteBodyPatchValidationSchema.validate(req.body).error;
   }
 
   if (error) {

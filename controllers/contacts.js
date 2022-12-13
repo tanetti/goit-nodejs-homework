@@ -1,19 +1,13 @@
 const {
-  readContacts,
-  readContactById,
-  writeContact,
-  removeContact,
-  updateContact,
-} = require("../models/contacts");
+  getContactsModel,
+  getContactByIdModel,
+  addContactModel,
+  deleteContactModel,
+  changeContactModel,
+} = require("../models/contacts/contacts");
 
 const getContactsController = async (_, res) => {
-  const contacts = await readContacts();
-
-  if (contacts?.error) {
-    return res
-      .status(500)
-      .json({ code: "data-corrupted", message: "Data corrupted or not found" });
-  }
+  const contacts = await getContactsModel();
 
   res.json(contacts);
 };
@@ -23,13 +17,7 @@ const getContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const contact = await readContactById(contactId);
-
-  if (contact?.error) {
-    return res
-      .status(500)
-      .json({ code: "data-corrupted", message: "Data corrupted or not found" });
-  }
+  const contact = await getContactByIdModel(contactId);
 
   if (!contact) {
     return res.status(404).json({
@@ -42,14 +30,7 @@ const getContactByIdController = async (req, res) => {
 };
 
 const addContactController = async (req, res) => {
-  const result = await writeContact(req.body);
-
-  if (result?.error) {
-    return res.status(500).json({
-      code: "storage-failure",
-      message: "Data storage corrupted or not available",
-    });
-  }
+  const result = await addContactModel(req.body);
 
   res.status(201).json({ code: "add-success", message: result });
 };
@@ -59,19 +40,12 @@ const deleteContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const result = await removeContact(contactId);
+  const result = await deleteContactModel(contactId);
 
-  if (result?.error) {
-    if (result.error === "no-contact") {
-      return res.status(404).json({
-        code: "not-found",
-        message: `Contact with id "${contactId}" was not found`,
-      });
-    }
-
-    return res.status(500).json({
-      code: "storage-failure",
-      message: "Data storage corrupted or not available",
+  if (!result) {
+    return res.status(404).json({
+      code: "not-found",
+      message: `Contact with id "${contactId}" was not found`,
     });
   }
 
@@ -84,7 +58,7 @@ const changeContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const result = await updateContact(contactId, body);
+  const result = await changeContactModel(contactId, body);
 
   if (result?.error) {
     if (result.error === "no-contact") {

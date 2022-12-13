@@ -3,11 +3,11 @@ const router = new express.Router();
 
 const {
   contactBodyValidation,
-} = require("../../middlewares/contactBodyValidation/validation");
+} = require("../middlewares/contactBodyValidation/validation");
 
 const {
   contactIdParamValidation,
-} = require("../../middlewares/contactIdParamValidation/validation");
+} = require("../middlewares/contactIdParamValidation/validation");
 
 const {
   getContactsController,
@@ -15,7 +15,7 @@ const {
   addContactController,
   deleteContactByIdController,
   changeContactByIdController,
-} = require("../../controllers/contacts");
+} = require("../controllers/contacts");
 
 router.get("/", getContactsController);
 router.get("/:contactId", contactIdParamValidation, getContactByIdController);
@@ -33,6 +33,12 @@ router.put(
 );
 router.patch(
   "/:contactId",
+  contactIdParamValidation,
+  contactBodyValidation,
+  changeContactByIdController
+);
+router.patch(
+  "/:contactId/favorite",
   contactIdParamValidation,
   contactBodyValidation,
   changeContactByIdController

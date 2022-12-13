@@ -9,7 +9,10 @@ const dbConnection = async (dbConnectionUrl) => {
   }
 
   try {
-    await mongoose.connect(dbConnectionUrl);
+    await mongoose.connect(dbConnectionUrl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log("\x1b[32mDatabase connection successful");
   } catch (error) {
     console.error(`\x1B[31mDatabase connection error: '${error.message}'`);
