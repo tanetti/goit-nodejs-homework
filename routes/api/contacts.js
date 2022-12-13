@@ -10,28 +10,32 @@ const {
 } = require("../../middlewares/contactIdParamValidation/validation");
 
 const {
-  getContacts,
-  getContactById,
-  addContact,
-  deleteContactById,
-  changeContactById,
+  getContactsController,
+  getContactByIdController,
+  addContactController,
+  deleteContactByIdController,
+  changeContactByIdController,
 } = require("../../controllers/contacts");
 
-router.get("/", getContacts);
-router.get("/:contactId", contactIdParamValidation, getContactById);
-router.post("/", contactBodyValidation, addContact);
-router.delete("/:contactId", contactIdParamValidation, deleteContactById);
+router.get("/", getContactsController);
+router.get("/:contactId", contactIdParamValidation, getContactByIdController);
+router.post("/", contactBodyValidation, addContactController);
+router.delete(
+  "/:contactId",
+  contactIdParamValidation,
+  deleteContactByIdController
+);
 router.put(
   "/:contactId",
   contactIdParamValidation,
   contactBodyValidation,
-  changeContactById
+  changeContactByIdController
 );
 router.patch(
   "/:contactId",
   contactIdParamValidation,
   contactBodyValidation,
-  changeContactById
+  changeContactByIdController
 );
 
 module.exports = router;

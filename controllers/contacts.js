@@ -6,7 +6,7 @@ const {
   updateContact,
 } = require("../models/contacts");
 
-const getContacts = async (_, res) => {
+const getContactsController = async (_, res) => {
   const contacts = await readContacts();
 
   if (contacts?.error) {
@@ -18,7 +18,7 @@ const getContacts = async (_, res) => {
   res.json(contacts);
 };
 
-const getContactById = async (req, res) => {
+const getContactByIdController = async (req, res) => {
   const {
     params: { contactId },
   } = req;
@@ -41,7 +41,7 @@ const getContactById = async (req, res) => {
   res.json(contact);
 };
 
-const addContact = async (req, res) => {
+const addContactController = async (req, res) => {
   const result = await writeContact(req.body);
 
   if (result?.error) {
@@ -54,7 +54,7 @@ const addContact = async (req, res) => {
   res.status(201).json({ code: "add-success", message: result });
 };
 
-const deleteContactById = async (req, res) => {
+const deleteContactByIdController = async (req, res) => {
   const {
     params: { contactId },
   } = req;
@@ -78,7 +78,7 @@ const deleteContactById = async (req, res) => {
   res.json({ code: "remove-success", message: result });
 };
 
-const changeContactById = async (req, res) => {
+const changeContactByIdController = async (req, res) => {
   const {
     body,
     params: { contactId },
@@ -104,9 +104,9 @@ const changeContactById = async (req, res) => {
 };
 
 module.exports = {
-  getContacts,
-  getContactById,
-  addContact,
-  deleteContactById,
-  changeContactById,
+  getContactsController,
+  getContactByIdController,
+  addContactController,
+  deleteContactByIdController,
+  changeContactByIdController,
 };
