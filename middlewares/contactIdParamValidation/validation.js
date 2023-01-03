@@ -1,11 +1,16 @@
+const { contactIdValidationSchema } = require("./schema");
+
 const contactIdParamValidation = (req, res, next) => {
   const { contactId } = req.params;
 
-  if (!Number(contactId)) {
-    return res.status(400).json({
-      code: "param-error",
-      message: 'Incorrect "cotactId" parameter',
-    });
+  const error = contactIdValidationSchema.validate(contactId).error;
+
+  if (error) {
+    const [firstError] = error.details;
+
+    return res
+      .status(400)
+      .json({ code: "validation-error", message: firstError.message });
   }
 
   next();
