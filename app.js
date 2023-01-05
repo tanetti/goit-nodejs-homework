@@ -14,10 +14,8 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-app.use(authHeaderValidation);
-
 app.use("/api/users", usersRouter);
-app.use("/api/contacts", contactsRouter);
+app.use("/api/contacts", authHeaderValidation, contactsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

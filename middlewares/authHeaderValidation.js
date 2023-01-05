@@ -2,10 +2,6 @@ const jwt = require("jsonwebtoken");
 const { findUserByIdModel } = require("../models/users/users");
 
 const authHeaderValidation = async (req, res, next) => {
-  if (!req.url.startsWith("/api/contacts")) {
-    return next();
-  }
-
   const authHeader = req.header("authorization");
   if (!authHeader) {
     return res.status(401).json({
@@ -32,6 +28,10 @@ const authHeaderValidation = async (req, res, next) => {
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await findUserByIdModel(_id);
+
+    if (!user.token) {
+      throw new Error("Not authorized");
+    }
 
     if (user.token !== token) {
       throw new Error("Invalid authorization token");

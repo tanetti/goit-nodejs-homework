@@ -14,6 +14,4 @@ const usersBodyValidation = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  usersBodyValidation,
-};
+module.exports = usersBodyValidation;

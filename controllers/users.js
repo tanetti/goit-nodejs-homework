@@ -1,4 +1,8 @@
-const { signupUserModel, loginUserModel } = require("../models/users/users");
+const {
+  signupUserModel,
+  loginUserModel,
+  resetUserTokenByIdModel,
+} = require("../models/users/users");
 
 const signupUserController = async (req, res) => {
   const result = await signupUserModel(req.body);
@@ -32,7 +36,27 @@ const loginUserController = async (req, res) => {
   res.json({ code: "login-success", result });
 };
 
+const logoutUserController = async (req, res) => {
+  try {
+    await resetUserTokenByIdModel(req.user._id);
+
+    res.status(204).json({});
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ code: "logout-error", message: error.message });
+  }
+};
+
+const currentUserController = (req, res) => {
+  const { email, subscription } = req.user;
+
+  res.json({ code: "current-user", result: { email, subscription } });
+};
+
 module.exports = {
   signupUserController,
   loginUserController,
+  logoutUserController,
+  currentUserController,
 };

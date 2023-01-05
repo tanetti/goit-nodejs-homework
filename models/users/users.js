@@ -51,8 +51,19 @@ const findUserByIdModel = async (_id) => {
   return user;
 };
 
+const resetUserTokenByIdModel = async (_id) => {
+  const user = await User.findById(_id);
+
+  if (!user) {
+    throw new Error(`No user with ID: "${_id}" was found`);
+  }
+
+  await user.updateOne({ token: null });
+};
+
 module.exports = {
   signupUserModel,
   loginUserModel,
   findUserByIdModel,
+  resetUserTokenByIdModel,
 };
