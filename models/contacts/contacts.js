@@ -36,7 +36,7 @@ const deleteContactModel = async (contactId, owner) => {
   const result = await Contact.findOneAndDelete({
     _id: contactId,
     owner,
-  });
+  }).select(["-owner", "-__v"]);
 
   return result;
 };
@@ -48,7 +48,7 @@ const changeContactModel = async (contactId, owner, body) => {
     {
       new: true,
     }
-  );
+  ).select(["-owner", "-__v"]);
 
   return result;
 };

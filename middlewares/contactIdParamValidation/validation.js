@@ -1,4 +1,4 @@
-const { contactIdValidationSchema } = require("./schema");
+const contactIdValidationSchema = require("./schema");
 
 const contactIdParamValidation = (req, res, next) => {
   const { contactId } = req.params;
@@ -16,4 +16,4 @@ const contactIdParamValidation = (req, res, next) => {
   next();
 };
 
-module.exports = { contactIdParamValidation };
+module.exports = contactIdParamValidation;

@@ -33,6 +33,4 @@ const contactBodyValidation = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  contactBodyValidation,
-};
+module.exports = contactBodyValidation;
