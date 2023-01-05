@@ -1,50 +1,87 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
 const {
   signupUserModel,
-  loginUserModel,
-  resetUserTokenByIdModel,
-  updateUserSubscriptionByIdModel,
+  findUserByEmailModel,
+  findUserByIdModel,
+  updateUserModel,
 } = require("../models/users/users");
 
 const signupUserController = async (req, res) => {
-  const result = await signupUserModel(req.body);
+  try {
+    const result = await signupUserModel(req.body);
 
-  if (result?.error && result?.error.code === 11000) {
-    return res
-      .status(409)
-      .json({ code: "signup-error", message: "Email in use" });
-  } else if (result?.error) {
+    const { email, subscription } = result;
+
+    res
+      .status(201)
+      .json({ code: "signup-success", user: { email, subscription } });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(409)
+        .json({ code: "signup-error", message: "Email in use" });
+    }
+
     return res
       .status(400)
-      .json({ code: "signup-error", message: result.error });
+      .json({ code: "signup-error", message: error.message });
   }
-
-  const { email, subscription } = result;
-
-  res
-    .status(201)
-    .json({ code: "signup-success", user: { email, subscription } });
 };
 
 const loginUserController = async (req, res) => {
   const { email, password } = req.body;
 
-  const result = await loginUserModel(email, password);
+  try {
+    const user = await findUserByEmailModel(email);
 
-  if (result?.error) {
-    return res.status(401).json({ code: "login-error", message: result.error });
+    if (!user) {
+      throw new Error(`No user was found with Email: ${email}`);
+    }
+
+    const isUsersPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isUsersPasswordMatch) {
+      throw new Error("Wrong password");
+    }
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+
+    await updateUserModel(user, { token });
+
+    const result = {
+      token,
+      user: {
+        email: user.email,
+        subscription: user.subscription,
+      },
+    };
+
+    res.json({ code: "login-success", result });
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ code: "login-error", message: error.message });
   }
-
-  res.json({ code: "login-success", result });
 };
 
 const logoutUserController = async (req, res) => {
+  const { _id } = req.user;
+
   try {
-    await resetUserTokenByIdModel(req.user._id);
+    const user = await findUserByIdModel(_id);
+
+    if (!user) {
+      throw new Error(`No user was found with ID: ${_id}`);
+    }
+
+    await updateUserModel(user, { token: null });
 
     res.status(204).json({});
   } catch (error) {
     return res
-      .status(500)
+      .status(400)
       .json({ code: "logout-error", message: error.message });
   }
 };
@@ -52,7 +89,7 @@ const logoutUserController = async (req, res) => {
 const currentUserController = (req, res) => {
   const { email, subscription } = req.user;
 
-  res.json({ code: "current-user", result: { email, subscription } });
+  res.json({ code: "current-user", user: { email, subscription } });
 };
 
 const updateUserSubscriptionController = async (req, res) => {
@@ -62,7 +99,15 @@ const updateUserSubscriptionController = async (req, res) => {
   } = req;
 
   try {
-    const result = await updateUserSubscriptionByIdModel(_id, body);
+    const user = await findUserByIdModel(_id);
+
+    if (!user) {
+      throw new Error(`No user was found with ID: ${_id}`);
+    }
+
+    await updateUserModel(user, body);
+
+    const result = { email: user.email, subscription: body.subscription };
 
     res.json({
       code: "update-subscription-success",
@@ -70,7 +115,7 @@ const updateUserSubscriptionController = async (req, res) => {
     });
   } catch (error) {
     return res
-      .status(500)
+      .status(400)
       .json({ code: "update-subscription-error", message: error.message });
   }
 };

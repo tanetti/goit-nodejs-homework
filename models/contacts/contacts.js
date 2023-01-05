@@ -1,4 +1,4 @@
-const { Contact } = require("./schema");
+const Contact = require("./schema");
 
 const getContactsModel = async (owner, settings) => {
   const { page, limit, favorite } = settings;

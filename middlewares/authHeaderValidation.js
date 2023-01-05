@@ -3,34 +3,27 @@ const { findUserByIdModel } = require("../models/users/users");
 
 const authHeaderValidation = async (req, res, next) => {
   const authHeader = req.header("authorization");
-  if (!authHeader) {
-    return res.status(401).json({
-      code: "authorization-error",
-      message: "Please provide an authorization header",
-    });
-  }
-
-  const [tokenType, token] = authHeader.split(" ");
-  if (!tokenType || tokenType !== "Bearer") {
-    return res.status(401).json({
-      code: "authorization-error",
-      message: "Authorization token type invalid",
-    });
-  }
-  if (!token) {
-    return res.status(401).json({
-      code: "authorization-error",
-      message: "Please provide a valid authorization token",
-    });
-  }
 
   try {
+    if (!authHeader) {
+      throw new Error("Please provide an authorization header");
+    }
+
+    const [tokenType, token] = authHeader.split(" ");
+
+    if (!tokenType || tokenType !== "Bearer") {
+      throw new Error("Authorization token type invalid");
+    }
+    if (!token) {
+      throw new Error("Please provide a valid authorization token");
+    }
+
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await findUserByIdModel(_id);
 
-    if (!user.token) {
-      throw new Error("Not authorized");
+    if (!user) {
+      throw new Error(`No user with ID: "${_id}" was found`);
     }
 
     if (user.token !== token) {
