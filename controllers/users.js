@@ -2,6 +2,7 @@ const {
   signupUserModel,
   loginUserModel,
   resetUserTokenByIdModel,
+  updateUserSubscriptionByIdModel,
 } = require("../models/users/users");
 
 const signupUserController = async (req, res) => {
@@ -54,9 +55,30 @@ const currentUserController = (req, res) => {
   res.json({ code: "current-user", result: { email, subscription } });
 };
 
+const updateUserSubscriptionController = async (req, res) => {
+  const {
+    user: { _id },
+    body,
+  } = req;
+
+  try {
+    const result = await updateUserSubscriptionByIdModel(_id, body);
+
+    res.json({
+      code: "update-subscription-success",
+      result,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ code: "update-subscription-error", message: error.message });
+  }
+};
+
 module.exports = {
   signupUserController,
   loginUserController,
   logoutUserController,
   currentUserController,
+  updateUserSubscriptionController,
 };

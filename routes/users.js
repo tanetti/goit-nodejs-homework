@@ -9,11 +9,18 @@ const {
   loginUserController,
   logoutUserController,
   currentUserController,
+  updateUserSubscriptionController,
 } = require("../controllers/users");
 
 router.post("/signup", usersBodyValidation, signupUserController);
 router.post("/login", usersBodyValidation, loginUserController);
 router.post("/logout", authHeaderValidation, logoutUserController);
-router.post("/current", authHeaderValidation, currentUserController);
+router.get("/current", authHeaderValidation, currentUserController);
+router.patch(
+  "/",
+  authHeaderValidation,
+  usersBodyValidation,
+  updateUserSubscriptionController
+);
 
 module.exports = router;

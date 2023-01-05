@@ -21,6 +21,18 @@ const usersBodyValidationSchema = joi.object({
     }),
 });
 
+const usersSubscriptionBodyValidationSchema = joi.object({
+  subscription: joi
+    .string()
+    .valid("starter", "pro", "business")
+    .required()
+    .messages({
+      "string.base": "User's Subscription must be a string",
+      "any.required": "User's Subscription was not specified",
+    }),
+});
+
 module.exports = {
   usersBodyValidationSchema,
+  usersSubscriptionBodyValidationSchema,
 };

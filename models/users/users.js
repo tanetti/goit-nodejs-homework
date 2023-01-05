@@ -61,9 +61,22 @@ const resetUserTokenByIdModel = async (_id) => {
   await user.updateOne({ token: null });
 };
 
+const updateUserSubscriptionByIdModel = async (_id, body) => {
+  const user = await User.findById(_id);
+
+  if (!user) {
+    throw new Error(`No user with ID: "${_id}" was found`);
+  }
+
+  await user.updateOne(body);
+
+  return { email: user.email, subscription: body.subscription };
+};
+
 module.exports = {
   signupUserModel,
   loginUserModel,
   findUserByIdModel,
   resetUserTokenByIdModel,
+  updateUserSubscriptionByIdModel,
 };

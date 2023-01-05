@@ -6,10 +6,26 @@ const {
   changeContactModel,
 } = require("../models/contacts/contacts");
 
+const parseBoolean = (value) => {
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  return null;
+};
+
 const getContactsController = async (req, res) => {
   const { _id: owner } = req.user;
+  const { page = 1, limit = 0, favorite = null } = req.query;
 
-  const contacts = await getContactsModel(owner);
+  const formattedPage = parseInt(page);
+  const formattedLimit = parseInt(limit);
+  const formattedFavorite = favorite ? parseBoolean(favorite) : null;
+
+  const contacts = await getContactsModel(owner, {
+    page: formattedPage,
+    limit: formattedLimit,
+    favorite: formattedFavorite,
+  });
 
   res.json(contacts);
 };

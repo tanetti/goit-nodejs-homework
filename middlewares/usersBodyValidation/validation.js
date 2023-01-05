@@ -1,7 +1,20 @@
-const { usersBodyValidationSchema } = require("./schema");
+const {
+  usersBodyValidationSchema,
+  usersSubscriptionBodyValidationSchema,
+} = require("./schema");
 
 const usersBodyValidation = (req, res, next) => {
-  const error = usersBodyValidationSchema.validate(req.body).error;
+  const requestMethod = req.method;
+
+  let error = null;
+
+  if (requestMethod === "POST") {
+    error = usersBodyValidationSchema.validate(req.body).error;
+  }
+
+  if (requestMethod === "PATCH") {
+    error = usersSubscriptionBodyValidationSchema.validate(req.body).error;
+  }
 
   if (error) {
     const [firstError] = error.details;

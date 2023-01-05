@@ -1,9 +1,17 @@
 const { Contact } = require("./schema");
 
-const getContactsModel = async (owner) => {
+const getContactsModel = async (owner, settings) => {
+  const { page, limit, favorite } = settings;
+  const skip = (page - 1) * limit;
+
+  const query = { owner };
+
+  if (typeof favorite === "boolean") query.favorite = favorite;
+
   const contacts = await Contact.find(
-    { owner: owner },
-    { owner: false, __v: false }
+    query,
+    { owner: false, __v: false },
+    { skip, limit }
   );
 
   return contacts;
