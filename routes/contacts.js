@@ -1,13 +1,9 @@
 const express = require("express");
 const router = new express.Router();
 
-const {
-  contactBodyValidation,
-} = require("../middlewares/contactBodyValidation/validation");
-
-const {
-  contactIdParamValidation,
-} = require("../middlewares/contactIdParamValidation/validation");
+const contactBodyValidation = require("../middlewares/contactBodyValidation/validation");
+const contactIdParamValidation = require("../middlewares/contactIdParamValidation/validation");
+const contactQueryValidation = require("../middlewares/contactQueryValidation/validation");
 
 const {
   getContactsController,
@@ -17,7 +13,7 @@ const {
   changeContactByIdController,
 } = require("../controllers/contacts");
 
-router.get("/", getContactsController);
+router.get("/", contactQueryValidation, getContactsController);
 router.get("/:contactId", contactIdParamValidation, getContactByIdController);
 router.post("/", contactBodyValidation, addContactController);
 router.delete(

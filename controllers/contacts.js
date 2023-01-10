@@ -6,18 +6,37 @@ const {
   changeContactModel,
 } = require("../models/contacts/contacts");
 
-const getContactsController = async (_, res) => {
-  const contacts = await getContactsModel();
+const parseBoolean = (value) => {
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  return null;
+};
+
+const getContactsController = async (req, res) => {
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 0, favorite = null } = req.query;
+
+  const formattedPage = parseInt(page);
+  const formattedLimit = parseInt(limit);
+  const formattedFavorite = favorite ? parseBoolean(favorite) : null;
+
+  const contacts = await getContactsModel(owner, {
+    page: formattedPage,
+    limit: formattedLimit,
+    favorite: formattedFavorite,
+  });
 
   res.json(contacts);
 };
 
 const getContactByIdController = async (req, res) => {
+  const { _id: owner } = req.user;
   const {
     params: { contactId },
   } = req;
 
-  const contact = await getContactByIdModel(contactId);
+  const contact = await getContactByIdModel(contactId, owner);
 
   if (!contact) {
     return res.status(404).json({
@@ -30,17 +49,20 @@ const getContactByIdController = async (req, res) => {
 };
 
 const addContactController = async (req, res) => {
+  req.body.owner = req.user._id;
+
   const result = await addContactModel(req.body);
 
   res.status(201).json({ code: "add-success", message: result });
 };
 
 const deleteContactByIdController = async (req, res) => {
+  const { _id: owner } = req.user;
   const {
     params: { contactId },
   } = req;
 
-  const result = await deleteContactModel(contactId);
+  const result = await deleteContactModel(contactId, owner);
 
   if (!result) {
     return res.status(404).json({
@@ -53,12 +75,13 @@ const deleteContactByIdController = async (req, res) => {
 };
 
 const changeContactByIdController = async (req, res) => {
+  const { _id: owner } = req.user;
   const {
     body,
     params: { contactId },
   } = req;
 
-  const result = await changeContactModel(contactId, body);
+  const result = await changeContactModel(contactId, owner, body);
 
   if (result?.error) {
     if (result.error === "no-contact") {

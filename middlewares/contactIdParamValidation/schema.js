@@ -12,4 +12,4 @@ const contactIdValidationSchema = joi
     "any.required": "Contact ID field was not specified",
   });
 
-module.exports = { contactIdValidationSchema };
+module.exports = contactIdValidationSchema;
