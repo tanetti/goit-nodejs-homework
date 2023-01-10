@@ -53,11 +53,13 @@ const loginUserController = async (req, res) => {
 
     await updateUserModel(user, { token });
 
+    const appUrl = `${req.protocol}://${req.headers.host}/`;
     const result = {
       token,
       user: {
         email: user.email,
         subscription: user.subscription,
+        avatarURL: `${appUrl}${user.avatarURL}`,
       },
     };
 
