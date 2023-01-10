@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const gravatar = require("gravatar");
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -16,6 +17,10 @@ const userSchema = new mongoose.Schema({
     enum: ["starter", "pro", "business"],
     default: "starter",
   },
+  avatarURL: {
+    type: String,
+    default: null,
+  },
   token: {
     type: String,
     default: null,
@@ -24,6 +29,14 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 8);
+});
+
+userSchema.pre("save", async function () {
+  this.avatarURL = gravatar.url(this.email, {
+    protocol: "http",
+    s: "250",
+    d: "identicon",
+  });
 });
 
 const User = mongoose.model("user", userSchema);
