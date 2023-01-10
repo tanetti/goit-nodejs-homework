@@ -53,13 +53,21 @@ const loginUserController = async (req, res) => {
 
     await updateUserModel(user, { token });
 
-    const appUrl = `${req.protocol}://${req.headers.host}/`;
+    let usersAvatarURL = null;
+
+    if (user.avatarURL.startsWith("http")) {
+      usersAvatarURL = user.avatarURL;
+    } else {
+      const appUrl = `${req.protocol}://${req.headers.host}/`;
+
+      usersAvatarURL = `${appUrl}${user.avatarURL}`;
+    }
     const result = {
       token,
       user: {
         email: user.email,
         subscription: user.subscription,
-        avatarURL: `${appUrl}${user.avatarURL}`,
+        avatarURL: usersAvatarURL,
       },
     };
 
