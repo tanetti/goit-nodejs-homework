@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const jimp = require("jimp");
 const path = require("path");
 const fs = require("fs/promises");
+require("dotenv").config();
 
 const {
   signupUserModel,
@@ -51,7 +52,7 @@ const loginUserController = async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 
-    await updateUserModel(user, { token });
+    await updateUserModel(user._id, { token });
 
     let usersAvatarURL = null;
 
@@ -89,7 +90,7 @@ const logoutUserController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user, { token: null });
+    await updateUserModel(user._id, { token: null });
 
     res.status(204).json({});
   } catch (error) {
@@ -123,8 +124,7 @@ const avatarUpdateController = async (req, res) => {
     const appUrl = `${req.protocol}://${req.headers.host}/`;
     const avatarFileUrl = `avatars/${currentUserId}.jpg`;
 
-    const user = await findUserByIdModel(_id);
-    await updateUserModel(user, { avatarURL: avatarFileUrl });
+    await updateUserModel(_id, { avatarURL: avatarFileUrl });
 
     res.json({
       code: "avatar-update-success",
@@ -151,7 +151,7 @@ const updateUserSubscriptionController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user, body);
+    await updateUserModel(_id, body);
 
     const result = { email: user.email, subscription: body.subscription };
 

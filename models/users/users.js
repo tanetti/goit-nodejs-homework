@@ -20,8 +20,8 @@ const findUserByIdModel = async (_id) => {
   return user;
 };
 
-const updateUserModel = async (user, body) => {
-  await user.updateOne(body);
+const updateUserModel = async (_id, body) => {
+  await User.findByIdAndUpdate(_id, body);
 };
 
 module.exports = {
