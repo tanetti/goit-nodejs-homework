@@ -1,5 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const jimp = require("jimp");
+const path = require("path");
+const fs = require("fs/promises");
 
 const {
   signupUserModel,
@@ -92,6 +95,39 @@ const currentUserController = (req, res) => {
   res.json({ code: "current-user", user: { email, subscription } });
 };
 
+const avatarUpdateController = async (req, res) => {
+  const { _id } = req.user;
+  const currentUserId = _id.toString();
+  const tempPath = path.resolve("./temp");
+  const avatarsPath = path.resolve("./public/avatars");
+  const tempAvatarPath = `${tempPath}/${currentUserId}.jpg`;
+  const resultAvatarPath = `${avatarsPath}/${currentUserId}.jpg`;
+
+  try {
+    const tempAvatar = await jimp.read(tempAvatarPath);
+
+    await tempAvatar.resize(250, 250).quality(80).writeAsync(resultAvatarPath);
+
+    await fs.unlink(tempAvatarPath);
+
+    const appUrl = `${req.protocol}://${req.headers.host}/`;
+    const avatarFileUrl = `avatars/${currentUserId}.jpg`;
+
+    const user = await findUserByIdModel(_id);
+    await updateUserModel(user, { avatarURL: avatarFileUrl });
+
+    res.json({
+      code: "avatar-update-success",
+      avatarURL: `${appUrl}${avatarFileUrl}`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      code: "avatar-update-error",
+      message: "Error while avatar processing",
+    });
+  }
+};
+
 const updateUserSubscriptionController = async (req, res) => {
   const {
     user: { _id },
@@ -125,5 +161,6 @@ module.exports = {
   loginUserController,
   logoutUserController,
   currentUserController,
+  avatarUpdateController,
   updateUserSubscriptionController,
 };
