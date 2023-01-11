@@ -59,10 +59,11 @@ const loginUserController = async (req, res) => {
     if (user.avatarURL.startsWith("http")) {
       usersAvatarURL = user.avatarURL;
     } else {
-      const appUrl = `${req.protocol}://${req.headers.host}/`;
+      const avatarsPath = `${req.protocol}://${req.headers.host}/avatars/`;
 
-      usersAvatarURL = `${appUrl}${user.avatarURL}`;
+      usersAvatarURL = `${avatarsPath}${user.avatarURL}`;
     }
+
     const result = {
       token,
       user: {
@@ -121,14 +122,14 @@ const avatarUpdateController = async (req, res) => {
 
     await fs.unlink(tempAvatarPath);
 
-    const appUrl = `${req.protocol}://${req.headers.host}/`;
-    const avatarFileUrl = `avatars/${currentUserId}.jpg`;
+    const avatarsPath = `${req.protocol}://${req.headers.host}/avatars/`;
+    const avatarFile = `${currentUserId}.jpg`;
 
-    await updateUserModel(_id, { avatarURL: avatarFileUrl });
+    await updateUserModel(_id, { avatarURL: avatarFile });
 
     res.json({
       code: "avatar-update-success",
-      avatarURL: `${appUrl}${avatarFileUrl}`,
+      avatarURL: `${avatarsPath}${avatarFile}`,
     });
   } catch (error) {
     return res.status(500).json({
