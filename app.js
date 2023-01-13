@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
@@ -10,10 +11,13 @@ const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
+const staticPath = path.resolve("./public");
+
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
+app.use("/", express.static(staticPath));
 app.use("/api/users", usersRouter);
 app.use("/api/contacts", authHeaderValidation, contactsRouter);
 

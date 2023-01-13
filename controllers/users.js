@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const jimp = require("jimp");
+const path = require("path");
+const fs = require("fs/promises");
+require("dotenv").config();
 
 const {
   signupUserModel,
@@ -48,13 +52,24 @@ const loginUserController = async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 
-    await updateUserModel(user, { token });
+    await updateUserModel(user._id, { token });
+
+    let usersAvatarURL = null;
+
+    if (user.avatarURL.startsWith("http")) {
+      usersAvatarURL = user.avatarURL;
+    } else {
+      const avatarsPath = `${process.env.APP_HOST}/avatars`;
+
+      usersAvatarURL = `${avatarsPath}/${user.avatarURL}`;
+    }
 
     const result = {
       token,
       user: {
         email: user.email,
         subscription: user.subscription,
+        avatarURL: usersAvatarURL,
       },
     };
 
@@ -76,7 +91,7 @@ const logoutUserController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user, { token: null });
+    await updateUserModel(user._id, { token: null });
 
     res.status(204).json({});
   } catch (error) {
@@ -92,6 +107,38 @@ const currentUserController = (req, res) => {
   res.json({ code: "current-user", user: { email, subscription } });
 };
 
+const avatarUpdateController = async (req, res) => {
+  const { _id } = req.user;
+  const currentUserId = _id.toString();
+  const tempPath = path.resolve("./temp");
+  const avatarsPath = path.resolve("./public/avatars");
+  const tempAvatarPath = `${tempPath}/${currentUserId}.jpg`;
+  const resultAvatarPath = `${avatarsPath}/${currentUserId}.jpg`;
+
+  try {
+    const tempAvatar = await jimp.read(tempAvatarPath);
+
+    await tempAvatar.resize(250, 250).quality(80).writeAsync(resultAvatarPath);
+
+    await fs.unlink(tempAvatarPath);
+
+    const avatarsPath = `${process.env.APP_HOST}/avatars`;
+    const avatarFile = `${currentUserId}.jpg`;
+
+    await updateUserModel(_id, { avatarURL: avatarFile });
+
+    res.json({
+      code: "avatar-update-success",
+      avatarURL: `${avatarsPath}/${avatarFile}`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      code: "avatar-update-error",
+      message: "Error while avatar processing",
+    });
+  }
+};
+
 const updateUserSubscriptionController = async (req, res) => {
   const {
     user: { _id },
@@ -105,7 +152,7 @@ const updateUserSubscriptionController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user, body);
+    await updateUserModel(_id, body);
 
     const result = { email: user.email, subscription: body.subscription };
 
@@ -125,5 +172,6 @@ module.exports = {
   loginUserController,
   logoutUserController,
   currentUserController,
+  avatarUpdateController,
   updateUserSubscriptionController,
 };

@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 const { findUserByIdModel } = require("../models/users/users");
 
 const authHeaderValidation = async (req, res, next) => {
