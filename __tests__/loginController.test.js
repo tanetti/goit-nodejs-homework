@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 const httpMocks = require("node-mocks-http");
-const { loginUserController } = require("../controllers/users");
+const { loginUserController } = require("../src/controllers/users");
 const bcrypt = require("bcrypt");
-const User = require("../models/users/schema");
+const User = require("../src/models/user");
 
 describe("Login controller tests", () => {
   test("Login normal flow result test", async () => {
@@ -27,6 +27,7 @@ describe("Login controller tests", () => {
       password: await bcrypt.hash(password, 8),
       token: null,
       subscription: "starter",
+      verify: true,
       avatarURL,
     }));
 
@@ -101,6 +102,7 @@ describe("Login controller tests", () => {
       password: await bcrypt.hash(wrongPassword, 8),
       token: null,
       subscription: "starter",
+      verify: true,
       avatarURL,
     }));
 
