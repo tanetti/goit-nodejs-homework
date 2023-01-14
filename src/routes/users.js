@@ -4,6 +4,7 @@ const router = new express.Router();
 const usersBodyValidation = require("../middlewares/usersBodyValidation/validation");
 const authHeaderValidation = require("../middlewares/authHeaderValidation");
 const avatarsUploadStorage = require("../middlewares/avatarsUploadStorage");
+const generateUserVerificationToken = require("../middlewares/generateUserVerificationToken");
 
 const {
   signupUserController,
@@ -15,7 +16,12 @@ const {
   updateUserSubscriptionController,
 } = require("../controllers/users");
 
-router.post("/signup", usersBodyValidation, signupUserController);
+router.post(
+  "/signup",
+  usersBodyValidation,
+  generateUserVerificationToken,
+  signupUserController
+);
 router.get("/verify/:verificationToken", verifyUserController);
 router.post("/login", usersBodyValidation, loginUserController);
 router.post("/logout", authHeaderValidation, logoutUserController);

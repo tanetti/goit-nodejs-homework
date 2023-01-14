@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const gravatar = require("gravatar");
+const sendUserVerificationEmailMessage = require("../services/sendEmailMessage");
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -39,12 +40,16 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 8);
 });
 
-userSchema.pre("save", async function () {
+userSchema.pre("save", function () {
   this.avatarURL = gravatar.url(this.email, {
     protocol: "http",
     s: "250",
     d: "identicon",
   });
+});
+
+userSchema.post("save", async function () {
+  await sendUserVerificationEmailMessage(this.email, this.verificationToken);
 });
 
 const User = mongoose.model("user", userSchema);

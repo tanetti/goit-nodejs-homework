@@ -64,40 +64,56 @@ const verifyUserController = async (req, res) => {
 };
 
 const loginUserController = async (req, res) => {
-  const { email, password } = req.body;
+  const { email: requestEmail, password: requestPassword } = req.body;
 
   try {
-    const user = await findUserByObjectOfParameters({ email });
+    const user = await findUserByObjectOfParameters({ email: requestEmail });
 
     if (!user) {
-      throw new Error(`No user was found with Email: ${email}`);
+      throw new Error(`No user was found with Email: ${requestEmail}`);
     }
 
-    const isUsersPasswordMatch = await bcrypt.compare(password, user.password);
+    const {
+      _id,
+      email: userEmail,
+      password: userPassword,
+      avatarURL,
+      subscription,
+      verify,
+    } = user;
+
+    if (!verify) {
+      throw new Error("User must be verified");
+    }
+
+    const isUsersPasswordMatch = await bcrypt.compare(
+      requestPassword,
+      userPassword
+    );
 
     if (!isUsersPasswordMatch) {
       throw new Error("Wrong password");
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ _id }, process.env.JWT_SECRET);
 
-    await updateUserByIdService(user._id, { token });
+    await updateUserByIdService(_id, { token });
 
     let usersAvatarURL = null;
 
-    if (user.avatarURL.startsWith("http")) {
-      usersAvatarURL = user.avatarURL;
+    if (avatarURL.startsWith("http")) {
+      usersAvatarURL = avatarURL;
     } else {
       const avatarsPath = `${process.env.APP_HOST}/avatars`;
 
-      usersAvatarURL = `${avatarsPath}/${user.avatarURL}`;
+      usersAvatarURL = `${avatarsPath}/${avatarURL}`;
     }
 
     const result = {
       token,
       user: {
-        email: user.email,
-        subscription: user.subscription,
+        email: userEmail,
+        subscription: subscription,
         avatarURL: usersAvatarURL,
       },
     };
