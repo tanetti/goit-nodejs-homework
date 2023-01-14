@@ -11,6 +11,7 @@ const {
   findUserByIdService,
   updateUserByIdService,
 } = require("../services/users");
+const sendUserVerificationEmailMessage = require("../services/sendEmailMessage");
 
 const signupUserController = async (req, res) => {
   try {
@@ -47,7 +48,7 @@ const verifyUserController = async (req, res) => {
     const { _id, email, verify } = user;
 
     if (verify) {
-      throw new Error("User was already verificated");
+      throw new Error("User already was verificated");
     }
 
     await updateUserByIdService(_id, { verify: true });
@@ -58,8 +59,37 @@ const verifyUserController = async (req, res) => {
     });
   } catch (error) {
     return res
-      .status(error.message === "User was already verificated" ? 406 : 404)
+      .status(error.message === "User already was verificated" ? 406 : 404)
       .json({ code: "verification-error", message: error.message });
+  }
+};
+
+const resendVerificationUserEmailController = async (req, res) => {
+  const { email: requestEmail } = req.body;
+
+  try {
+    const user = await findUserByObjectOfParameters({ email: requestEmail });
+
+    if (!user) {
+      throw new Error(`No user was found with Email: ${requestEmail}`);
+    }
+
+    const { email: userEmail, verificationToken, verify } = user;
+
+    if (verify) {
+      throw new Error("User already was verified");
+    }
+
+    await sendUserVerificationEmailMessage(userEmail, verificationToken);
+
+    res.json({
+      code: "verification-email-send-success",
+      message: `Verification email message was sent to '${userEmail}'`,
+    });
+  } catch (error) {
+    return res
+      .status(error.message === "User already was verificated" ? 406 : 400)
+      .json({ code: "verification-email-send-error", message: error.message });
   }
 };
 
@@ -215,6 +245,7 @@ const updateUserSubscriptionController = async (req, res) => {
 module.exports = {
   signupUserController,
   verifyUserController,
+  resendVerificationUserEmailController,
   loginUserController,
   logoutUserController,
   currentUserController,

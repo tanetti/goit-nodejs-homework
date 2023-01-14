@@ -9,6 +9,7 @@ const generateUserVerificationToken = require("../middlewares/generateUserVerifi
 const {
   signupUserController,
   verifyUserController,
+  resendVerificationUserEmailController,
   loginUserController,
   logoutUserController,
   currentUserController,
@@ -23,6 +24,11 @@ router.post(
   signupUserController
 );
 router.get("/verify/:verificationToken", verifyUserController);
+router.post(
+  "/verify",
+  usersBodyValidation,
+  resendVerificationUserEmailController
+);
 router.post("/login", usersBodyValidation, loginUserController);
 router.post("/logout", authHeaderValidation, logoutUserController);
 router.get("/current", authHeaderValidation, currentUserController);

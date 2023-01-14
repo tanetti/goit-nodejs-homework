@@ -32,7 +32,16 @@ const usersSubscriptionBodyValidationSchema = joi.object({
     }),
 });
 
+const usersBodyResendVerificationEmailValidationSchema = joi.object({
+  email: joi.string().email().required().messages({
+    "string.base": "User's Email must be a string",
+    "string.email": "Incorrect format of user's Email",
+    "any.required": "User's Email was not specified",
+  }),
+});
+
 module.exports = {
   usersBodyValidationSchema,
   usersSubscriptionBodyValidationSchema,
+  usersBodyResendVerificationEmailValidationSchema,
 };
