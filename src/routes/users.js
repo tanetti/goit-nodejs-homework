@@ -7,6 +7,7 @@ const avatarsUploadStorage = require("../middlewares/avatarsUploadStorage");
 
 const {
   signupUserController,
+  verifyUserController,
   loginUserController,
   logoutUserController,
   currentUserController,
@@ -15,6 +16,7 @@ const {
 } = require("../controllers/users");
 
 router.post("/signup", usersBodyValidation, signupUserController);
+router.get("/verify/:verificationToken", verifyUserController);
 router.post("/login", usersBodyValidation, loginUserController);
 router.post("/logout", authHeaderValidation, logoutUserController);
 router.get("/current", authHeaderValidation, currentUserController);

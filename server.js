@@ -1,5 +1,5 @@
-const app = require("./app");
-const { dbConnection } = require("./dbConnection");
+const app = require("./src/app");
+const { dbConnection } = require("./src/services/dbConnection");
 require("dotenv").config();
 
 const dbConnectionUrl = process.env.DB_CONNECTION_URL;

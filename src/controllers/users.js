@@ -6,15 +6,15 @@ const fs = require("fs/promises");
 require("dotenv").config();
 
 const {
-  signupUserModel,
-  findUserByEmailModel,
-  findUserByIdModel,
-  updateUserModel,
-} = require("../models/users/users");
+  signupUserService,
+  findUserByEmailService,
+  findUserByIdService,
+  updateUserService,
+} = require("../services/users");
 
 const signupUserController = async (req, res) => {
   try {
-    const result = await signupUserModel(req.body);
+    const result = await signupUserService(req.body);
 
     const { email, subscription } = result;
 
@@ -34,11 +34,13 @@ const signupUserController = async (req, res) => {
   }
 };
 
+const verifyUserController = async (req, res) => {};
+
 const loginUserController = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await findUserByEmailModel(email);
+    const user = await findUserByEmailService(email);
 
     if (!user) {
       throw new Error(`No user was found with Email: ${email}`);
@@ -52,7 +54,7 @@ const loginUserController = async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 
-    await updateUserModel(user._id, { token });
+    await updateUserService(user._id, { token });
 
     let usersAvatarURL = null;
 
@@ -85,13 +87,13 @@ const logoutUserController = async (req, res) => {
   const { _id } = req.user;
 
   try {
-    const user = await findUserByIdModel(_id);
+    const user = await findUserByIdService(_id);
 
     if (!user) {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user._id, { token: null });
+    await updateUserService(user._id, { token: null });
 
     res.status(204).json({});
   } catch (error) {
@@ -125,7 +127,7 @@ const avatarUpdateController = async (req, res) => {
     const avatarsPath = `${process.env.APP_HOST}/avatars`;
     const avatarFile = `${currentUserId}.jpg`;
 
-    await updateUserModel(_id, { avatarURL: avatarFile });
+    await updateUserService(_id, { avatarURL: avatarFile });
 
     res.json({
       code: "avatar-update-success",
@@ -146,13 +148,13 @@ const updateUserSubscriptionController = async (req, res) => {
   } = req;
 
   try {
-    const user = await findUserByIdModel(_id);
+    const user = await findUserByIdService(_id);
 
     if (!user) {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(_id, body);
+    await updateUserService(_id, body);
 
     const result = { email: user.email, subscription: body.subscription };
 
@@ -169,6 +171,7 @@ const updateUserSubscriptionController = async (req, res) => {
 
 module.exports = {
   signupUserController,
+  verifyUserController,
   loginUserController,
   logoutUserController,
   currentUserController,

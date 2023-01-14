@@ -11,7 +11,7 @@ const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
-const staticPath = path.resolve("./public");
+const staticPath = path.resolve("../public");
 
 app.use(logger(formatsLogger));
 app.use(cors());

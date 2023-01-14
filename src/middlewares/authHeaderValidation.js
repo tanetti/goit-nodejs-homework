@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const { findUserByIdModel } = require("../models/users/users");
+const { findUserByIdService } = require("../services/users");
 
 const authHeaderValidation = async (req, res, next) => {
   const authHeader = req.header("authorization");
@@ -21,7 +21,7 @@ const authHeaderValidation = async (req, res, next) => {
 
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await findUserByIdModel(_id);
+    const user = await findUserByIdService(_id);
 
     if (!user) {
       throw new Error(`No user with ID: "${_id}" was found`);
