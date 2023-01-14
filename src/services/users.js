@@ -8,8 +8,8 @@ const signupUserService = async (userData) => {
   return result;
 };
 
-const findUserByEmailService = async (email) => {
-  const user = await User.findOne({ email });
+const findUserByObjectOfParameters = async (object) => {
+  const user = await User.findOne(object);
 
   return user;
 };
@@ -20,13 +20,13 @@ const findUserByIdService = async (_id) => {
   return user;
 };
 
-const updateUserService = async (_id, body) => {
+const updateUserByIdService = async (_id, body) => {
   await User.findByIdAndUpdate(_id, body);
 };
 
 module.exports = {
   signupUserService,
-  findUserByEmailService,
+  findUserByObjectOfParameters,
   findUserByIdService,
-  updateUserService,
+  updateUserByIdService,
 };

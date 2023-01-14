@@ -7,9 +7,9 @@ require("dotenv").config();
 
 const {
   signupUserService,
-  findUserByEmailService,
+  findUserByObjectOfParameters,
   findUserByIdService,
-  updateUserService,
+  updateUserByIdService,
 } = require("../services/users");
 
 const signupUserController = async (req, res) => {
@@ -34,13 +34,40 @@ const signupUserController = async (req, res) => {
   }
 };
 
-const verifyUserController = async (req, res) => {};
+const verifyUserController = async (req, res) => {
+  const { verificationToken } = req.params;
+
+  try {
+    const user = await findUserByObjectOfParameters({ verificationToken });
+
+    if (!user) {
+      throw new Error(`No user was found with provided verification token`);
+    }
+
+    const { _id, email, verify } = user;
+
+    if (verify) {
+      throw new Error("User was already verificated");
+    }
+
+    await updateUserByIdService(_id, { verify: true });
+
+    res.json({
+      code: "verification-success",
+      message: `User with email '${email}' was successfuly verified`,
+    });
+  } catch (error) {
+    return res
+      .status(error.message === "User was already verificated" ? 406 : 404)
+      .json({ code: "verification-error", message: error.message });
+  }
+};
 
 const loginUserController = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await findUserByEmailService(email);
+    const user = await findUserByObjectOfParameters({ email });
 
     if (!user) {
       throw new Error(`No user was found with Email: ${email}`);
@@ -54,7 +81,7 @@ const loginUserController = async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 
-    await updateUserService(user._id, { token });
+    await updateUserByIdService(user._id, { token });
 
     let usersAvatarURL = null;
 
@@ -93,7 +120,7 @@ const logoutUserController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserService(user._id, { token: null });
+    await updateUserByIdService(user._id, { token: null });
 
     res.status(204).json({});
   } catch (error) {
@@ -127,7 +154,7 @@ const avatarUpdateController = async (req, res) => {
     const avatarsPath = `${process.env.APP_HOST}/avatars`;
     const avatarFile = `${currentUserId}.jpg`;
 
-    await updateUserService(_id, { avatarURL: avatarFile });
+    await updateUserByIdService(_id, { avatarURL: avatarFile });
 
     res.json({
       code: "avatar-update-success",
@@ -154,7 +181,7 @@ const updateUserSubscriptionController = async (req, res) => {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserService(_id, body);
+    await updateUserByIdService(_id, body);
 
     const result = { email: user.email, subscription: body.subscription };
 
