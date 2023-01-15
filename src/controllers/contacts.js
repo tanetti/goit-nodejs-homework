@@ -1,10 +1,10 @@
 const {
-  getContactsModel,
-  getContactByIdModel,
-  addContactModel,
-  deleteContactModel,
-  changeContactModel,
-} = require("../models/contacts/contacts");
+  getContactsService,
+  getContactByIdService,
+  addContactService,
+  deleteContactService,
+  changeContactService,
+} = require("../services/contacts");
 
 const parseBoolean = (value) => {
   if (value === "true") return true;
@@ -21,7 +21,7 @@ const getContactsController = async (req, res) => {
   const formattedLimit = parseInt(limit);
   const formattedFavorite = favorite ? parseBoolean(favorite) : null;
 
-  const contacts = await getContactsModel(owner, {
+  const contacts = await getContactsService(owner, {
     page: formattedPage,
     limit: formattedLimit,
     favorite: formattedFavorite,
@@ -36,7 +36,7 @@ const getContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const contact = await getContactByIdModel(contactId, owner);
+  const contact = await getContactByIdService(contactId, owner);
 
   if (!contact) {
     return res.status(404).json({
@@ -51,7 +51,7 @@ const getContactByIdController = async (req, res) => {
 const addContactController = async (req, res) => {
   req.body.owner = req.user._id;
 
-  const result = await addContactModel(req.body);
+  const result = await addContactService(req.body);
 
   res.status(201).json({ code: "add-success", message: result });
 };
@@ -62,7 +62,7 @@ const deleteContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const result = await deleteContactModel(contactId, owner);
+  const result = await deleteContactService(contactId, owner);
 
   if (!result) {
     return res.status(404).json({
@@ -81,7 +81,7 @@ const changeContactByIdController = async (req, res) => {
     params: { contactId },
   } = req;
 
-  const result = await changeContactModel(contactId, owner, body);
+  const result = await changeContactService(contactId, owner, body);
 
   if (result?.error) {
     if (result.error === "no-contact") {

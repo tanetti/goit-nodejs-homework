@@ -1,6 +1,6 @@
-const Contact = require("./schema");
+const Contact = require("../models/contact");
 
-const getContactsModel = async (owner, settings) => {
+const getContactsService = async (owner, settings) => {
   const { page, limit, favorite } = settings;
   const skip = (page - 1) * limit;
 
@@ -17,7 +17,7 @@ const getContactsModel = async (owner, settings) => {
   return contacts;
 };
 
-const getContactByIdModel = async (contactId, owner) => {
+const getContactByIdService = async (contactId, owner) => {
   const contact = await Contact.findOne(
     { _id: contactId, owner },
     { owner: false, __v: false }
@@ -26,13 +26,13 @@ const getContactByIdModel = async (contactId, owner) => {
   return contact;
 };
 
-const addContactModel = async (body) => {
+const addContactService = async (body) => {
   const result = await Contact.create(body);
 
   return result;
 };
 
-const deleteContactModel = async (contactId, owner) => {
+const deleteContactService = async (contactId, owner) => {
   const result = await Contact.findOneAndDelete({
     _id: contactId,
     owner,
@@ -41,7 +41,7 @@ const deleteContactModel = async (contactId, owner) => {
   return result;
 };
 
-const changeContactModel = async (contactId, owner, body) => {
+const changeContactService = async (contactId, owner, body) => {
   const result = await Contact.findOneAndUpdate(
     { _id: contactId, owner },
     body,
@@ -54,9 +54,9 @@ const changeContactModel = async (contactId, owner, body) => {
 };
 
 module.exports = {
-  getContactsModel,
-  getContactByIdModel,
-  addContactModel,
-  deleteContactModel,
-  changeContactModel,
+  getContactsService,
+  getContactByIdService,
+  addContactService,
+  deleteContactService,
+  changeContactService,
 };

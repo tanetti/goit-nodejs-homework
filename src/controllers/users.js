@@ -6,15 +6,16 @@ const fs = require("fs/promises");
 require("dotenv").config();
 
 const {
-  signupUserModel,
-  findUserByEmailModel,
-  findUserByIdModel,
-  updateUserModel,
-} = require("../models/users/users");
+  signupUserService,
+  findUserByObjectOfParameters,
+  findUserByIdService,
+  updateUserByIdService,
+} = require("../services/users");
+const sendUserVerificationEmailMessage = require("../services/sendEmailMessage");
 
 const signupUserController = async (req, res) => {
   try {
-    const result = await signupUserModel(req.body);
+    const result = await signupUserService(req.body);
 
     const { email, subscription } = result;
 
@@ -34,41 +35,115 @@ const signupUserController = async (req, res) => {
   }
 };
 
-const loginUserController = async (req, res) => {
-  const { email, password } = req.body;
+const verifyUserController = async (req, res) => {
+  const { verificationToken } = req.params;
 
   try {
-    const user = await findUserByEmailModel(email);
+    const user = await findUserByObjectOfParameters({ verificationToken });
 
     if (!user) {
-      throw new Error(`No user was found with Email: ${email}`);
+      throw new Error(`No user was found with provided verification token`);
     }
 
-    const isUsersPasswordMatch = await bcrypt.compare(password, user.password);
+    const { _id, email, verify } = user;
+
+    if (verify) {
+      throw new Error("User already was verificated");
+    }
+
+    await updateUserByIdService(_id, { verify: true });
+
+    res.json({
+      code: "verification-success",
+      message: `User with email '${email}' was successfuly verified`,
+    });
+  } catch (error) {
+    return res
+      .status(error.message === "User already was verificated" ? 406 : 404)
+      .json({ code: "verification-error", message: error.message });
+  }
+};
+
+const resendVerificationUserEmailController = async (req, res) => {
+  const { email: requestEmail } = req.body;
+
+  try {
+    const user = await findUserByObjectOfParameters({ email: requestEmail });
+
+    if (!user) {
+      throw new Error(`No user was found with Email: ${requestEmail}`);
+    }
+
+    const { email: userEmail, verificationToken, verify } = user;
+
+    if (verify) {
+      throw new Error("User already was verified");
+    }
+
+    await sendUserVerificationEmailMessage(userEmail, verificationToken);
+
+    res.json({
+      code: "verification-email-send-success",
+      message: `Verification email message was sent to '${userEmail}'`,
+    });
+  } catch (error) {
+    return res
+      .status(error.message === "User already was verificated" ? 406 : 400)
+      .json({ code: "verification-email-send-error", message: error.message });
+  }
+};
+
+const loginUserController = async (req, res) => {
+  const { email: requestEmail, password: requestPassword } = req.body;
+
+  try {
+    const user = await findUserByObjectOfParameters({ email: requestEmail });
+
+    if (!user) {
+      throw new Error(`No user was found with Email: ${requestEmail}`);
+    }
+
+    const {
+      _id,
+      email: userEmail,
+      password: userPassword,
+      avatarURL,
+      subscription,
+      verify,
+    } = user;
+
+    if (!verify) {
+      throw new Error("User must be verified");
+    }
+
+    const isUsersPasswordMatch = await bcrypt.compare(
+      requestPassword,
+      userPassword
+    );
 
     if (!isUsersPasswordMatch) {
       throw new Error("Wrong password");
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ _id }, process.env.JWT_SECRET);
 
-    await updateUserModel(user._id, { token });
+    await updateUserByIdService(_id, { token });
 
     let usersAvatarURL = null;
 
-    if (user.avatarURL.startsWith("http")) {
-      usersAvatarURL = user.avatarURL;
+    if (avatarURL.startsWith("http")) {
+      usersAvatarURL = avatarURL;
     } else {
       const avatarsPath = `${process.env.APP_HOST}/avatars`;
 
-      usersAvatarURL = `${avatarsPath}/${user.avatarURL}`;
+      usersAvatarURL = `${avatarsPath}/${avatarURL}`;
     }
 
     const result = {
       token,
       user: {
-        email: user.email,
-        subscription: user.subscription,
+        email: userEmail,
+        subscription: subscription,
         avatarURL: usersAvatarURL,
       },
     };
@@ -85,13 +160,13 @@ const logoutUserController = async (req, res) => {
   const { _id } = req.user;
 
   try {
-    const user = await findUserByIdModel(_id);
+    const user = await findUserByIdService(_id);
 
     if (!user) {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(user._id, { token: null });
+    await updateUserByIdService(user._id, { token: null });
 
     res.status(204).json({});
   } catch (error) {
@@ -125,7 +200,7 @@ const avatarUpdateController = async (req, res) => {
     const avatarsPath = `${process.env.APP_HOST}/avatars`;
     const avatarFile = `${currentUserId}.jpg`;
 
-    await updateUserModel(_id, { avatarURL: avatarFile });
+    await updateUserByIdService(_id, { avatarURL: avatarFile });
 
     res.json({
       code: "avatar-update-success",
@@ -146,13 +221,13 @@ const updateUserSubscriptionController = async (req, res) => {
   } = req;
 
   try {
-    const user = await findUserByIdModel(_id);
+    const user = await findUserByIdService(_id);
 
     if (!user) {
       throw new Error(`No user was found with ID: ${_id}`);
     }
 
-    await updateUserModel(_id, body);
+    await updateUserByIdService(_id, body);
 
     const result = { email: user.email, subscription: body.subscription };
 
@@ -169,6 +244,8 @@ const updateUserSubscriptionController = async (req, res) => {
 
 module.exports = {
   signupUserController,
+  verifyUserController,
+  resendVerificationUserEmailController,
   loginUserController,
   logoutUserController,
   currentUserController,
